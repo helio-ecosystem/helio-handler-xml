@@ -23,7 +23,8 @@ import org.w3c.dom.ls.LSSerializer;
 import org.xml.sax.InputSource;
 
 import com.google.gson.JsonObject;
-import helio.blueprints.components.DataHandler;
+
+import helio.blueprints.DataHandler;
 
 /**
  * This object implements the {@link DataHandler} interface allowing to handle XML documents. It allows to reference data allocated in an XML document using the standardized <a href="https://www.w3.org/TR/1999/REC-xpath-19991116/">XPath</a> expressions.
@@ -54,13 +55,12 @@ public class XmlHandler implements DataHandler{
 		this.iterator = iterator;
 	}
 
-
 	@Override
-	public Queue<String> splitData(InputStream dataStream) {
-		ConcurrentLinkedQueue<String> queueOfresults = new ConcurrentLinkedQueue<>();
-		if(dataStream!=null) {
+	public List<String> iterator(String dataChunk) {
+		List<String> queueOfresults = new ArrayList();
+		if(dataChunk != null) {
 			try {
-				Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(dataStream));
+				Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(dataChunk));
 				// 3. Compile XPath
 				XPathExpression expr =  XPATH.compile(iterator);
 				// 4. Evaluate XPath in the document
@@ -78,7 +78,7 @@ public class XmlHandler implements DataHandler{
 				}else {
 					logger.warn("Given xPath expression does not match in the document");
 				}
-			} catch (Exception e) {
+			}catch(Exception e) {
 				logger.warn(e.toString());
 			}
 		}
@@ -119,6 +119,5 @@ public class XmlHandler implements DataHandler{
 			throw new IllegalArgumentException("XmlHandler needs to receive json object with the mandatory key 'iterator'");
 		}
 	}
-
 
 }
