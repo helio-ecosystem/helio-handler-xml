@@ -2,16 +2,28 @@ package handlers;
 
 import java.io.InputStream;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathEvaluationResult;
 import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import javax.xml.xpath.XPathNodes;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,12 +39,18 @@ import com.google.gson.JsonObject;
 import helio.blueprints.DataHandler;
 
 /**
- * This object implements the {@link DataHandler} interface allowing to handle XML documents. It allows to reference data allocated in an XML document using the standardized <a href="https://www.w3.org/TR/1999/REC-xpath-19991116/">XPath</a> expressions.
- * This object can be configured with a {@link JsonObject} that must contain the key 'iterator' which value is an XPath used to split the XML document into sub-documents.
+ * This object implements the {@link DataHandler} interface allowing to handle
+ * XML documents. It allows to reference data allocated in an XML document using
+ * the standardized
+ * <a href="https://www.w3.org/TR/1999/REC-xpath-19991116/">XPath</a>
+ * expressions. This object can be configured with a {@link JsonObject} that
+ * must contain the key 'iterator' which value is an XPath used to split the XML
+ * document into sub-documents.
+ * 
  * @author Andrea Cimmino
  *
  */
-public class XmlHandler implements DataHandler{
+public class XmlHandler implements DataHandler {
 
 	private static final long serialVersionUID = 1L;
 	Logger logger = LoggerFactory.getLogger(XmlHandler.class);
@@ -95,20 +113,55 @@ public class XmlHandler implements DataHandler{
 			// 3. Compile XPath
 			XPathExpression expr = XPATH.compile(filter);
 			// 3. Evaluate XPath in the document
-			NodeList nodes = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
-			if (nodes.getLength() == 0) {
-				logger.warn("xPath "+filter+" retrieved zero values from original document: "+dataChunk);
-			} else {
-				for (int index = nodes.getLength() - 1; index >= 0; index--)
-					results.add(nodes.item(0).getTextContent());
-
-			}
+			results = extractInformation( expr,  doc,  filter,  dataChunk);
 		} catch (Exception e) {
 			logger.error(e.toString());
 		}
 		return results;
 	}
+	
+	public List<String> extractInformation(XPathExpression expr, Document doc, String filter, String dataChunk){
+		List<String> results = new ArrayList<>();
+		try {		
+			
+			NodeList nodes = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
+			if(nodes.getLength()==0) {
+				String node = (String) expr.evaluateExpression(doc, String.class);
+				System.out.println(node);
+				results.add(node);
+			}else {
+				for(int index=0; index <nodes.getLength(); index++)
+					results.add(nodeToString(nodes.item(index)));
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+//		if (nodes.getLength() == 0) {
+//			logger.warn("xPath "+filter+" retrieved zero values from original document: "+dataChunk);
+//		} else {
+//			for (int index = nodes.getLength() - 1; index >= 0; index--)
+//				results.add(nodes.item(0).getTextContent());
+//
+//		}
+		
+		return results;
+	}
 
+	 private  String nodeToString(Node node) {
+		    StringWriter sw = new StringWriter();
+		    try {
+		      Transformer t = TransformerFactory.newInstance().newTransformer();
+		      t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+		      t.setOutputProperty(OutputKeys.INDENT, "yes");
+		      t.transform(new DOMSource(node), new StreamResult(sw));
+		    } catch (TransformerException te) {
+		    	te.printStackTrace();
+		      System.out.println("nodeToString Transformer Exception");
+		    }
+		    return sw.toString();
+		  }
+	
 	@Override
 	public void configure(JsonObject configuration) {
 		if(configuration.has(CONFIGURATION_KEY)) {
