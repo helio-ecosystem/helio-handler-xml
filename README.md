@@ -5,7 +5,7 @@ coordinates:
   * class `handlers.XmlHandler`
   * type `HANDLER` 
 
-
+````mermaid
  gitGraph
        commit
        commit
@@ -17,3 +17,4 @@ coordinates:
        merge develop
        commit
        commit
+````
