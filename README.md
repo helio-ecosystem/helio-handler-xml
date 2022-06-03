@@ -5,16 +5,4 @@ coordinates:
   * class `handlers.XmlHandler`
   * type `HANDLER` 
 
-````mermaid
- gitGraph
-       commit
-       commit
-       branch develop
-       checkout develop
-       commit
-       commit
-       checkout main
-       merge develop
-       commit
-       commit
-````
+
