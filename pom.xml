@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.helio-ecosystem</groupId>
 	<artifactId>helio-handler-xml</artifactId>
-	<version>0.0.2</version>
+	<version>0.1.1</version>
 	<name>XML data handler</name>
 	<description>This data handler allows extracting data from XML</description>
 
@@ -23,7 +23,7 @@
 		<dependency>
 			<groupId>io.github.helio-ecosystem</groupId>
 			<artifactId>helio-blueprints</artifactId>
-			<version>0.4.20</version>
+			<version>0.4.26</version>
 		</dependency>
 
 		<!-- Loggin -->
